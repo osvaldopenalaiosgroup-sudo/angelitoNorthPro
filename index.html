@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Angelito NorthPro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: una sola columna estrecha; pasos que se reemplazan (elegir → confirmar → abrir sobre) */
+:root{
+  --bg:#f3f1ea; --paper:#fffdf7; --ink:#1f2a24; --muted:#5f6b63;
+  --pine:#1e5a43; --pine-soft:#e3ece6; --gold:#b9862b; --line:#d9d6cb; --taken:#e9e6dd; --warn:#a2412b;
+  --display:"Young Serif",Georgia,"Times New Roman",serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#121814; --paper:#1a221d; --ink:#ece9df; --muted:#9aa69e;
+  --pine:#6fbf98; --pine-soft:#20302a; --gold:#e0b25a; --line:#2c3831; --taken:#161d19; --warn:#e48a72; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:calc(40px + env(safe-area-inset-top,0px)) calc(56px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-direction:column;gap:8px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:600}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,8vw,46px);line-height:1.05;margin:0;text-wrap:balance}
+.lede{color:var(--muted);margin:0;max-width:44ch}
+h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0;text-wrap:balance}
+.pick{display:flex;flex-direction:column;gap:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.name{font:inherit;font-weight:500;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:10px;
+  background:var(--paper);color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s;display:flex;flex-direction:column;gap:2px}
+.name:hover:not(:disabled){border-color:var(--pine);background:var(--pine-soft)}
+.name:disabled{cursor:not-allowed;background:var(--taken);color:var(--muted);text-decoration:line-through}
+.name small{font-size:12px;text-decoration:none;display:inline-block}
+.name:focus-visible,.btn:focus-visible,.envelope:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:600;padding:12px 18px;border-radius:999px;border:1px solid var(--pine);cursor:pointer}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.primary{background:var(--pine);color:var(--paper)}
+.btn.ghost{background:transparent;color:var(--pine)}
+.note{font-size:14px;color:var(--muted);margin:0}
+.error{font-size:14px;color:var(--warn);margin:0;font-weight:500}
+.status{font-size:13px;color:var(--muted);margin:0;font-variant-numeric:tabular-nums}
+.envelope{all:unset;cursor:pointer;display:block;position:relative;aspect-ratio:7/5;width:100%;max-width:100%;border-radius:12px;
+  background:var(--pine);overflow:hidden;box-shadow:0 10px 30px -12px rgba(0,0,0,.35)}
+.envelope::before{content:"";position:absolute;inset:0 0 auto;height:58%;background:var(--gold);
+  clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .6s ease}
+.envelope .tap{position:absolute;inset:auto 0 18px;text-align:center;color:var(--paper);font-weight:600;letter-spacing:.04em}
+.envelope.open::before{transform:scaleY(0)}
+.reveal{text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.reveal .to{font-family:var(--display);font-size:clamp(36px,10vw,52px);line-height:1.1;color:var(--pine);text-wrap:balance}
+.fade{animation:fade .5s ease both}
+@keyframes fade{from{opacity:.0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fade{animation:none}.envelope::before{transition:none}}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Intercambio de regalos · Navidad 2026</span>
+    <h1>Angelito NorthPro</h1>
+    <p class="lede">Busca tu nombre y tócalo. Te diremos a quién le toca tu regalo. No se lo digas a nadie.</p>
+  </header>
+
+  <section id="step-pick" class="pick fade">
+    <h2>¿Quién eres?</h2>
+    <div class="grid" id="names"></div>
+    <p class="status" id="status">Cargando nombres…</p>
+  </section>
+
+  <section id="step-confirm" class="panel fade" hidden>
+    <h2 id="confirm-q"></h2>
+    <p class="note">Elige solo tu propio nombre. Al confirmar, tu nombre queda marcado para todos y nadie más podrá abrirlo.</p>
+    <p class="error" id="confirm-err" hidden></p>
+    <div class="row">
+      <button class="btn primary" id="yes" type="button">Sí, soy yo</button>
+      <button class="btn ghost" id="no" type="button">No, volver</button>
+    </div>
+  </section>
+
+  <section id="step-open" class="panel fade" hidden>
+    <h2 id="hello"></h2>
+    <button class="envelope" id="env" type="button" aria-label="Abrir el sobre"><span class="tap">Toca para abrir tu sobre</span></button>
+  </section>
+
+  <section id="step-result" class="panel fade" hidden>
+    <div class="reveal">
+      <span class="eyebrow" id="from"></span>
+      <span class="note">Tu angelito es</span>
+      <span class="to" id="to"></span>
+    </div>
+    <p class="note" style="text-align:center">Toma una captura o recuérdalo bien. Guarda el secreto hasta el día del intercambio.</p>
+  </section>
+
+  <footer>8 participantes · nadie se regala a sí mismo · cada persona da y recibe un solo regalo.</footer>
+</div>
+
+<script>
+/* ===== CONFIGURA AQUÍ (Supabase → Project Settings → API) ===== */
+const SUPABASE_URL = "https://gxnmwsbgiaeqkisqumzz.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_gBGF53AFVBlIffltSrLG9A_wBxPhYFO";
+/* =============================================================== */
+
+const D={"Yuhanny": "NwAaFQYUABY=", "Marolyn": "NwAfFQEcCw==", "Laura": "Iw4AGwQJHA==", "Dignys": "Ig4HBgk=", "Adriana": "NxoaFQYeCw==", "Freddery": "KgYVGhED", "Yohandry": "KB0XEAwVABY=", "Yomaily": "LwsAHQkeEw=="};
+const K="northpro2026";
+function dec(s){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i)^K.charCodeAt(i%K.length);return new TextDecoder().decode(u)}
+
+const API=SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/angelito_northpro_claims";
+/* Las llaves nuevas (sb_publishable_…) van solo en "apikey"; las antiguas (eyJ…) también en Authorization */
+const H={apikey:SUPABASE_ANON_KEY};
+if(SUPABASE_ANON_KEY.startsWith("eyJ")) H.Authorization="Bearer "+SUPABASE_ANON_KEY;
+async function why(r,what){
+  let msg=""; try{const j=await r.json(); msg=j.message||j.msg||j.error||JSON.stringify(j)}catch(e){}
+  return new Error(`${what} · HTTP ${r.status}${msg?" · "+msg:""}`);
+}
+async function fetchTaken(){
+  const r=await fetch(API+"?select=name",{headers:H});
+  if(!r.ok) throw await why(r,"Leer");
+  return new Set((await r.json()).map(x=>x.name));
+}
+async function claim(name){
+  const r=await fetch(API,{method:"POST",headers:{...H,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({name})});
+  if(r.ok) return "ok";
+  if(r.status===409) return "taken";
+  throw await why(r,"Guardar");
+}
+function detail(e){
+  if(SUPABASE_URL.includes("TU-PROYECTO")||SUPABASE_ANON_KEY.includes("TU-ANON")) return "Falta poner la URL y la llave de Supabase en el archivo.";
+  return e&&e.message&&e.message!=="Failed to fetch" ? e.message : "No hay conexión con Supabase (revisa la URL o tu internet).";
+}
+
+const LS="angelito-northpro-2026-yo";
+function load(){try{return localStorage.getItem(LS)}catch(e){return null}}
+function save(v){try{localStorage.setItem(LS,v)}catch(e){}}
+
+const $=id=>document.getElementById(id);
+const steps=["step-pick","step-confirm","step-open","step-result"];
+function show(id){steps.forEach(s=>$(s).hidden=s!==id)}
+let me=null, taken=new Set();
+
+function renderNames(){
+  const grid=$("names"); grid.textContent="";
+  Object.keys(D).forEach(n=>{
+    const b=document.createElement("button"); b.type="button"; b.className="name";
+    const t=document.createElement("span"); t.textContent=n; b.appendChild(t);
+    if(taken.has(n)){b.disabled=true;const s=document.createElement("small");s.textContent="Ya eligió";b.appendChild(s)}
+    b.onclick=()=>{me=n;$("confirm-q").textContent="¿Eres "+n+"?";$("confirm-err").hidden=true;show("step-confirm");$("yes").focus()};
+    grid.appendChild(b);
+  });
+  const left=Object.keys(D).length-taken.size;
+  $("status").textContent= left===0 ? "Todos ya eligieron." : `Faltan ${left} de ${Object.keys(D).length} por elegir.`;
+}
+
+async function refresh(){
+  try{ taken=await fetchTaken(); renderNames(); }
+  catch(e){ renderNames(); $("status").textContent="No se pudo conectar: "+detail(e); }
+}
+
+$("no").onclick=()=>{me=null;show("step-pick");refresh()};
+$("yes").onclick=async()=>{
+  const btn=$("yes"); btn.disabled=true; $("confirm-err").hidden=true;
+  try{
+    const res=await claim(me);
+    if(res==="taken"){
+      $("confirm-err").textContent=`${me} ya abrió su sobre desde otro teléfono. Si eres tú y fue un error, avísale al organizador.`;
+      $("confirm-err").hidden=false; btn.disabled=false; return;
+    }
+    save(me); $("hello").textContent="Hola, "+me; show("step-open"); $("env").focus();
+  }catch(e){
+    $("confirm-err").textContent="No se pudo conectar: "+detail(e);
+    $("confirm-err").hidden=false;
+  }
+  btn.disabled=false;
+};
+$("env").onclick=()=>{$("env").classList.add("open");setTimeout(result,450)};
+function result(){$("from").textContent=me;$("to").textContent=dec(D[me]);show("step-result")}
+
+const saved=load();
+if(saved&&D[saved]){me=saved;result()} else {renderNames();refresh();setInterval(()=>{if(!$("step-pick").hidden)refresh()},15000)}
+</script>
+</body>
+</html>
